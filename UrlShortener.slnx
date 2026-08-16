@@ -1,3 +1,15 @@
 <Solution>
   <Project Path="UrlShortener.API/UrlShortener.API.csproj" />
+  <Project Path="UrlShortener.Application/UrlShortener.Application.csproj">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
+  <Project Path="UrlShortener.Domain/UrlShortener.Domain.csproj">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
+  <Project Path="UrlShortener.Infrastructure/UrlShortener.Infrastructure.csproj">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
+  <Project Path="UrlShortener.Test/UrlShortener.Test.csproj">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
 </Solution>
