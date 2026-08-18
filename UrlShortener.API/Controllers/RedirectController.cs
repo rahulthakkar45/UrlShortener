@@ -15,21 +15,10 @@ namespace UrlShortener.API.Controllers
             _redirectService = redirectService;
         }
         [HttpGet("{code}")]
-        public async Task<IActionResult> RedirectToOriginalUrl(string shortCode)
+        public async Task<IActionResult> RedirectToOriginalUrl(string code)
         {
-            try
-            {
-                var originalUrl = await _redirectService.Redirect(shortCode);
-                if (string.IsNullOrEmpty(originalUrl))
-                {
-                    return NotFound("Short URL not found.");
-                }
-                return Redirect(originalUrl);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var originalUrl = await _redirectService.Redirect(code);
+            return Redirect(originalUrl);
         }
     }
 }

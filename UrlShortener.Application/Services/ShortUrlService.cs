@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using UrlShortener.Application.DTOs.Url;
 using UrlShortener.Application.Helpers;
 using UrlShortener.Application.Interfaces;
@@ -13,10 +14,12 @@ namespace UrlShortener.Application.Services
     public class ShortUrlService : IShortUrlService
     {
         private readonly IShortUrlRepository _shortUrlRepository;
+        private readonly ILogger<ShortUrlService> _logger;
 
-        public ShortUrlService(IShortUrlRepository shortUrlRepository)
+        public ShortUrlService(IShortUrlRepository shortUrlRepository, ILogger<ShortUrlService> logger)
         {
             _shortUrlRepository = shortUrlRepository;
+            _logger = logger;
         }
 
         public async Task<ShortUrlResponseDto> Create(CreateShortUrlDto dto, int userId)
@@ -24,6 +27,7 @@ namespace UrlShortener.Application.Services
             ValidateUrl(dto.Url);
             if (dto.ExpiresAt <= DateTime.UtcNow)
             {
+                _logger.LogWarning("Attempted to create a short URL with an expiration date in the past for user {UserId}.", userId);
                 throw new ArgumentException("Expiration can't be in the past.");
             }
             string shortCode;
@@ -44,6 +48,7 @@ namespace UrlShortener.Application.Services
             };
 
             await _shortUrlRepository.AddAsync(shortUrl);
+            _logger.LogInformation("Created new short URL with ID {ShortUrlId} for user {UserId}.", shortUrl.Id, userId);
 
             return new ShortUrlResponseDto
             {
@@ -79,6 +84,7 @@ namespace UrlShortener.Application.Services
             var shortUrl = await _shortUrlRepository.GetByIdAsync(id, userId);
             if (shortUrl is null)
             {
+                _logger.LogWarning("Short URL with ID {ShortUrlId} not found for user {UserId}.", id, userId);
                 throw new KeyNotFoundException("Short URL not found.");
             }
             return new ShortUrlResponseDto
@@ -114,6 +120,7 @@ namespace UrlShortener.Application.Services
             var shortUrl = await _shortUrlRepository.GetUrlStatisticsAsync(id, userId);
             if (shortUrl is null)
             {
+                _logger.LogWarning("Statistics for short URL with ID {ShortUrlId} not found for user {UserId}.", id, userId);
                 throw new KeyNotFoundException("Short URL not found.");
             }
             return shortUrl;
@@ -123,6 +130,7 @@ namespace UrlShortener.Application.Services
             var result = await _shortUrlRepository.DeleteAsync(id, userId);
             if (!result)
             {
+                _logger.LogWarning("Attempted to delete short URL with ID {ShortUrlId} for user {UserId}, but it was not found or the user does not have permission.", id, userId);
                 throw new KeyNotFoundException("Short URL not found.");
             }
             return result;

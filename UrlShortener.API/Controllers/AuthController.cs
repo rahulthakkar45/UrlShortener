@@ -19,29 +19,15 @@ namespace UrlShortener.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            try
-            {
-                var response = await _authService.LoginAsync(loginDto);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
+            var response = await _authService.LoginAsync(loginDto);
+            return Ok(response);
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto) 
         {
-            try
-            {
-                var response = await _authService.RegisterAsync(registerDto);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
+            var response = await _authService.RegisterAsync(registerDto);
+            return Ok(response);
         }
     }
 }

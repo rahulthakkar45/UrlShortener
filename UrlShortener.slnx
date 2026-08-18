@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="DECiSIONS.md" />
+  </Folder>
   <Project Path="UrlShortener.API/UrlShortener.API.csproj" />
   <Project Path="UrlShortener.Application/UrlShortener.Application.csproj" />
   <Project Path="UrlShortener.Domain/UrlShortener.Domain.csproj" />

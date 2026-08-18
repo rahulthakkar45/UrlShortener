@@ -22,34 +22,19 @@ namespace UrlShortener.API.Controllers
         [HttpPost("create")]
         public async Task<ActionResult<ShortUrlResponseDto>> CreateShortUrl([FromBody] CreateShortUrlDto dto)
         {
-            try
-            {
-                var claims = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(ClaimTypes.Name);
-                if (!int.TryParse(claims, out var userId))
-                {
-                    return Unauthorized("Invalid user ID.");
-                }
-                var response = await _shortUrlService.Create(dto, userId);
-                return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var userId = GetUserId();
+            var response = await _shortUrlService.Create(dto, userId);
+            return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
         }
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ShortUrlResponseDto>> GetById(int id)
         {
-            var claims = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(ClaimTypes.Name);
-            if (!int.TryParse(claims, out var userId))
-            {
-                return Unauthorized("Invalid user ID.");
-            }
+            var userId = GetUserId();
             var response = await _shortUrlService.GetByIdAsync(id, userId);
             if (response is null)
             {
-                return NotFound("Short URL not found.");
+                throw new KeyNotFoundException("Short URL not found.");
             }
             return Ok(response);
         }
@@ -57,44 +42,46 @@ namespace UrlShortener.API.Controllers
         [HttpGet]
         public async Task<ActionResult<PagedResultDto<ShortUrlResponseDto>>> GetAll([FromQuery] UrlListDto itemDto)
         {
-            var claims = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(ClaimTypes.Name);
-            if (!int.TryParse(claims, out var userId))
-            {
-                return Unauthorized("Invalid user ID.");
-            }
+            var userId = GetUserId();          
             var response = await _shortUrlService.GetAllAsync(userId, itemDto);
+            if(response is null)
+            {
+                throw new KeyNotFoundException("No short URLs found.");
+            }
             return Ok(response);
         }
 
         [HttpGet("{id:int}/statistics")]
         public async Task<ActionResult<UrlStatisticsDto>> GetUrlStatistics(int id)
         {
-            var claims = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(ClaimTypes.Name);
-            if (!int.TryParse(claims, out var userId))
-            {
-                return Unauthorized("Invalid user ID.");
-            }
+            var userId = GetUserId();
             var response = await _shortUrlService.GetUrlStatisticsAsync(id, userId);
             if (response is null)
             {
-                return NotFound("Short URL not found.");
+                throw new KeyNotFoundException("Short URL not found.");
             }
             return Ok(response);
         }
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var claims = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(ClaimTypes.Name);
-            if (!int.TryParse(claims, out var userId))
-            {
-                return Unauthorized("Invalid user ID.");
-            }
+            var userId = GetUserId();
             var result = await _shortUrlService.DeleteAsync(id, userId);
             if (!result)
             {
-                return NotFound("Short URL not found.");
+                throw new KeyNotFoundException("Short URL not found or you do not have permission to delete it.");
             }
             return NoContent();
+        }
+
+        private int GetUserId()
+        {
+            var claims = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(ClaimTypes.Name);
+            if (!int.TryParse(claims, out var userId))
+            {
+                throw new UnauthorizedAccessException("Invalid user ID.");
+            }
+            return userId;
         }
     }
 }
