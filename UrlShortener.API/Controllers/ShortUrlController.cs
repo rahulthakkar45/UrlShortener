@@ -19,7 +19,7 @@ namespace UrlShortener.API.Controllers
             _shortUrlService = shortUrlService;
         }
 
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<ActionResult<ShortUrlResponseDto>> CreateShortUrl([FromBody] CreateShortUrlDto dto)
         {
             var userId = GetUserId();
